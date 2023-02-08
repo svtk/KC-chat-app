@@ -4,6 +4,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version "1.7.22"
     id("org.jetbrains.compose") version "1.2.1"
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 group = "com.kcchatapp"
