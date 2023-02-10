@@ -5,9 +5,10 @@ import model.ChatEvent
 
 interface ChatService {
     suspend fun openSession(username: String)
+
     fun observeChatEvents(): Flow<ChatEvent>
 
-    suspend fun sendMessage(message: String)
+    suspend fun sendChatEvent(chatEvent: ChatEvent)
 
     suspend fun closeSession()
 

@@ -5,8 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import data.remote.ChatService
 import data.remote.ChatServiceImpl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import model.*
 
 class ChatViewModel(
@@ -19,13 +22,31 @@ class ChatViewModel(
     private val _eventFlow: MutableStateFlow<List<ChatEvent>> = MutableStateFlow(listOf())
     val eventFlow: StateFlow<List<ChatEvent>> get() = _eventFlow
 
+    private val mutex = Mutex()
+    private val _typingUserEvents: MutableStateFlow<Set<UserIsTyping>> = MutableStateFlow(setOf())
+    val typingUsers: Flow<Set<String>>
+        get() = _typingUserEvents
+            .map { it.map(UserIsTyping::name).toSet() }
+
     fun connectToChat(username: String) {
         _username.value = username
         scope.launch {
             chatService.openSession(username)
             chatService.observeChatEvents()
                 .onEach { chatEvent ->
-                    _eventFlow.value = listOf(chatEvent) + _eventFlow.value
+                    if (chatEvent is UserIsTyping) {
+                        mutex.withLock {
+                            _typingUserEvents.value = _typingUserEvents.value + chatEvent
+                        }
+                        scope.launch {
+                            delay(5000)
+                            mutex.withLock {
+                                _typingUserEvents.value = _typingUserEvents.value - chatEvent
+                            }
+                        }
+                    } else {
+                        _eventFlow.value = listOf(chatEvent) + _eventFlow.value
+                    }
                 }
                 .launchIn(scope)
         }
@@ -39,7 +60,13 @@ class ChatViewModel(
 
     fun sendMessage(message: String) {
         scope.launch {
-            chatService.sendMessage(message)
+            chatService.sendChatEvent(MessageSent(Message(text = message, username = username.value!!)))
+        }
+    }
+
+    fun startTyping() {
+        scope.launch {
+            chatService.sendChatEvent(UserIsTyping(name = username.value!!))
         }
     }
 }

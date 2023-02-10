@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.*
 import model.*
 
 @Composable
@@ -23,14 +22,20 @@ fun ChatView(chatViewModel: ChatViewModel) {
     Column {
         MessageListView(
             chatEvents = chatViewModel.eventFlow.collectAsState(listOf()).value,
-            username = chatViewModel.username.value)
-        CreateMessageView(chatViewModel::sendMessage)
+            typingUsers = chatViewModel.typingUsers.collectAsState(setOf()).value,
+            username = chatViewModel.username.value,
+        )
+        CreateMessageView(
+            chatViewModel::sendMessage,
+            chatViewModel::startTyping,
+        )
     }
 }
 
 @Composable
 fun MessageListView(
     chatEvents: List<ChatEvent>,
+    typingUsers: Set<String>,
     username: String?,
 ) {
     Box(
@@ -44,6 +49,9 @@ fun MessageListView(
             state = state,
             reverseLayout = true,
         ) {
+            item {
+                TypingUsers(typingUsers)
+            }
             items(
                 items = chatEvents
             ) { event ->
@@ -68,6 +76,7 @@ private fun UserEventView(userEvent: UserEvent) {
     val systemText = when (userEvent) {
         is UserJoined -> "${userEvent.name} joined"
         is UserLeft -> "${userEvent.name} left"
+        is UserIsTyping -> TODO()
     }
 
     Box(
@@ -86,12 +95,32 @@ private fun UserEventView(userEvent: UserEvent) {
 }
 
 @Composable
+fun TypingUsers(typingUsers: Set<String>) {
+    if (typingUsers.isEmpty()) return
+    val text = if (typingUsers.size == 1) {
+        "${typingUsers.single()} is typing"
+    } else {
+        "${typingUsers.joinToString()} are typing"
+    }
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            modifier = Modifier.padding(4.dp),
+            text = text,
+            color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
+            style = MaterialTheme.typography.overline
+        )
+    }
+}
+
+@Composable
 private fun MessageView(
     event: MessageSent,
     username: String?
 ) {
     val message = event.message
-
     val isOwnMessage = message.username == username
     Box(
         contentAlignment = if (isOwnMessage) {
@@ -107,18 +136,11 @@ private fun MessageView(
             }
             .fillMaxWidth()
     ) {
-        val localDateTime = message.timestamp
-            .toLocalDateTime(TimeZone.currentSystemDefault())
-        val time = localDateTime.run { LocalTime(hour, minute) }
-        val date = localDateTime.date
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val timeText = if (date == today) "$time" else "$date $time"
         Card {
             Column(
                 modifier = Modifier
                     .background(
-                        color =
-                        if (isOwnMessage)
+                        color = if (isOwnMessage)
                             MaterialTheme.colors.secondary.copy(alpha = 0.1f)
                         else
                             MaterialTheme.colors.onPrimary
@@ -134,7 +156,7 @@ private fun MessageView(
                     modifier = Modifier.padding(top = 2.dp, start = 5.dp, end = 15.dp)
                 )
                 Text(
-                    text = timeText,
+                    text = message.timeText(),
                     modifier = Modifier.align(Alignment.End).padding(start = 20.dp),
                     color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.overline,
@@ -146,7 +168,8 @@ private fun MessageView(
 
 @Composable
 fun CreateMessageView(
-    onMessageSent: (String) -> Unit
+    onMessageSent: (String) -> Unit,
+    onUserIsTyping: () -> Unit
 ) {
     var message by remember { mutableStateOf("") }
     Card(Modifier.padding(10.dp)) {
@@ -158,7 +181,10 @@ fun CreateMessageView(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(0.9f),
                 value = message,
-                onValueChange = { message = it },
+                onValueChange = {
+                    message = it
+                    onUserIsTyping()
+                },
                 label = { Text("Message") },
             )
             Box(

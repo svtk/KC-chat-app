@@ -34,10 +34,6 @@ class ChatServiceImpl : ChatService {
     private var socket: DefaultClientWebSocketSession? = null
     private lateinit var username: String
 
-    private suspend fun sendChatEvent(chatEvent: ChatEvent) {
-        socket?.sendSerialized(chatEvent)
-    }
-
     override suspend fun openSession(username: String) {
         try {
             this.username = username
@@ -63,9 +59,9 @@ class ChatServiceImpl : ChatService {
             ?: flowOf()
     }
 
-    override suspend fun sendMessage(message: String) {
+    override suspend fun sendChatEvent(chatEvent: ChatEvent) {
         try {
-            sendChatEvent(MessageSent(Message(text = message, username = username)))
+            socket?.sendSerialized(chatEvent)
         } catch (e: Exception) {
             println("Error while sending: " + e.localizedMessage)
         }
