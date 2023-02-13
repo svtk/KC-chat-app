@@ -1,28 +1,36 @@
 package com.kcchatapp.model
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface ChatEvent {
-    val persistent: Boolean get() = true
+sealed interface Event {
+    val username: String
 }
 
 @Serializable
-data class MessageSent(val message: Message): ChatEvent
+sealed interface ChatEvent: Event
 
 @Serializable
-sealed interface UserEvent: ChatEvent {
-    val name: String
-}
+data class MessageEvent(
+    override val username: String,
+    val message: Message,
+): ChatEvent
 
 @Serializable
-data class UserJoined(override val name: String): UserEvent
+data class Message(
+    val text: String,
+    val timestamp: Instant = Clock.System.now(),
+)
 
 @Serializable
-data class UserLeft(override val name: String): UserEvent
+data class UserEvent(
+    override val username: String,
+    val statusChange: UserStatusChange
+): ChatEvent
+
+enum class UserStatusChange { USER_JOINED, USER_LEFT }
 
 @Serializable
-data class UserIsTyping(
-    override val name: String,
-    override val persistent: Boolean = false
-): UserEvent
+data class TypingEvent(override val username: String): Event

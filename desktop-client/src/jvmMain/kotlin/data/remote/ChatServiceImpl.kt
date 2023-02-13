@@ -1,8 +1,6 @@
 package data.remote
 
-import com.kcchatapp.model.ChatEvent
-import com.kcchatapp.model.UserJoined
-import com.kcchatapp.model.UserLeft
+import com.kcchatapp.model.*
 import data.remote.ChatService.Companion.CHAT_HOST
 import data.remote.ChatService.Companion.CHAT_PORT
 import data.remote.ChatService.Companion.CHAT_WS_PATH
@@ -45,32 +43,30 @@ class ChatServiceImpl : ChatService {
                 port = CHAT_PORT,
                 path = CHAT_WS_PATH
             )
-            sendChatEvent(UserJoined(name = username))
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    override fun observeChatEvents(): Flow<ChatEvent> {
+    override fun observeEvents(): Flow<Event> {
         return socket
             ?.incoming
             ?.receiveAsFlow()
             ?.mapNotNull {
-                socket?.converter?.deserialize<ChatEvent>(it)
+                socket?.converter?.deserialize<Event>(it)
             }
             ?: flowOf()
     }
 
-    override suspend fun sendChatEvent(chatEvent: ChatEvent) {
+    override suspend fun sendEvent(event: Event) {
         try {
-            socket?.sendSerialized(chatEvent)
+            socket?.sendSerialized(event)
         } catch (e: Exception) {
             println("Error while sending: " + e.localizedMessage)
         }
     }
 
     override suspend fun closeSession() {
-        sendChatEvent(UserLeft(name = username))
         socket?.close()
     }
 }

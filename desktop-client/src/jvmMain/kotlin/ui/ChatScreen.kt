@@ -56,7 +56,7 @@ fun MessageListView(
                 items = chatEvents
             ) { event ->
                 when (event) {
-                    is MessageSent -> MessageView(event, username)
+                    is MessageEvent -> MessageView(event, username)
                     is UserEvent -> UserEventView(event)
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -73,12 +73,11 @@ fun MessageListView(
 
 @Composable
 private fun UserEventView(userEvent: UserEvent) {
-    val systemText = when (userEvent) {
-        is UserJoined -> "${userEvent.name} joined"
-        is UserLeft -> "${userEvent.name} left"
-        is UserIsTyping -> TODO()
+    val change = when (userEvent.statusChange) {
+        UserStatusChange.USER_JOINED -> "joined"
+        UserStatusChange.USER_LEFT -> "left"
     }
-
+    val systemText = "${userEvent.username} $change"
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
@@ -117,11 +116,10 @@ fun TypingUsers(typingUsers: Set<String>) {
 
 @Composable
 private fun MessageView(
-    event: MessageSent,
+    event: MessageEvent,
     username: String?
 ) {
-    val message = event.message
-    val isOwnMessage = message.username == username
+    val isOwnMessage = event.username == username
     Box(
         contentAlignment = if (isOwnMessage) {
             Alignment.CenterEnd
@@ -147,16 +145,16 @@ private fun MessageView(
                     )
             ) {
                 Text(
-                    text = message.username,
+                    text = event.username,
                     style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(top = 5.dp, start = 5.dp, end = 15.dp),
                 )
                 Text(
-                    text = message.text,
+                    text = event.message.text,
                     modifier = Modifier.padding(top = 2.dp, start = 5.dp, end = 15.dp)
                 )
                 Text(
-                    text = message.timeText(),
+                    text = event.message.timeText(),
                     modifier = Modifier.align(Alignment.End).padding(start = 20.dp),
                     color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.overline,

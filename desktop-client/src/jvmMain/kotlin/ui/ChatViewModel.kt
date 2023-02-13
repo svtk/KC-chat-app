@@ -2,10 +2,7 @@ package ui
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import com.kcchatapp.model.ChatEvent
-import com.kcchatapp.model.Message
-import com.kcchatapp.model.MessageSent
-import com.kcchatapp.model.UserIsTyping
+import com.kcchatapp.model.*
 import data.remote.ChatService
 import data.remote.ChatServiceImpl
 import kotlinx.coroutines.CoroutineScope
@@ -26,29 +23,37 @@ class ChatViewModel(
     val eventFlow: StateFlow<List<ChatEvent>> get() = _eventFlow
 
     private val mutex = Mutex()
-    private val _typingUserEvents: MutableStateFlow<Set<UserIsTyping>> = MutableStateFlow(setOf())
+    private val _typingUserEvents: MutableStateFlow<Set<TypingEvent>> = MutableStateFlow(setOf())
     val typingUsers: Flow<Set<String>>
         get() = _typingUserEvents
-            .map { it.map(UserIsTyping::name).toSet() }
+            .map { it.map(TypingEvent::username).toSet() }
 
     fun connectToChat(username: String) {
         _username.value = username
         scope.launch {
             chatService.openSession(username)
-            chatService.observeChatEvents()
-                .onEach { chatEvent ->
-                    if (chatEvent is UserIsTyping) {
-                        mutex.withLock {
-                            _typingUserEvents.value = _typingUserEvents.value + chatEvent
-                        }
-                        scope.launch {
-                            delay(5000)
+            chatService.sendEvent(UserEvent(username = username, statusChange = UserStatusChange.USER_JOINED))
+            chatService.observeEvents()
+                .onEach { event ->
+                    when (event) {
+                        is ChatEvent -> {
+                            _eventFlow.value = listOf(event) + _eventFlow.value
                             mutex.withLock {
-                                _typingUserEvents.value = _typingUserEvents.value - chatEvent
+                                _typingUserEvents.value = _typingUserEvents.value
+                                    .filter { it.username != event.username }.toSet()
                             }
                         }
-                    } else {
-                        _eventFlow.value = listOf(chatEvent) + _eventFlow.value
+                        is TypingEvent -> {
+                            mutex.withLock {
+                                _typingUserEvents.value = _typingUserEvents.value + event
+                            }
+                            scope.launch {
+                                delay(5000)
+                                mutex.withLock {
+                                    _typingUserEvents.value = _typingUserEvents.value - event
+                                }
+                            }
+                        }
                     }
                 }
                 .launchIn(scope)
@@ -57,19 +62,26 @@ class ChatViewModel(
 
     fun disconnect() {
         scope.launch {
+            username.value?.let { name ->
+                chatService.sendEvent(UserEvent(username = name, statusChange = UserStatusChange.USER_LEFT))
+            }
             chatService.closeSession()
         }
     }
 
     fun sendMessage(message: String) {
         scope.launch {
-            chatService.sendChatEvent(MessageSent(Message(text = message, username = username.value!!)))
+            username.value?.let { name ->
+                chatService.sendEvent(MessageEvent(username = name, Message(text = message)))
+            }
         }
     }
 
     fun startTyping() {
         scope.launch {
-            chatService.sendChatEvent(UserIsTyping(name = username.value!!))
+            username.value?.let { name ->
+                chatService.sendEvent(TypingEvent(username = name))
+            }
         }
     }
 }
