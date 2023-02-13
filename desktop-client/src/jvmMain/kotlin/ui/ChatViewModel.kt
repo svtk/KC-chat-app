@@ -22,10 +22,10 @@ class ChatViewModel(
     private val _eventFlow: MutableStateFlow<List<ChatEvent>> = MutableStateFlow(listOf())
     val eventFlow: StateFlow<List<ChatEvent>> get() = _eventFlow
 
-    private val mutex = Mutex()
-    private val _typingUserEvents: MutableStateFlow<Set<TypingEvent>> = MutableStateFlow(setOf())
+    private val typingEventsMutex = Mutex()
+    private val _typingEvents: MutableStateFlow<Set<TypingEvent>> = MutableStateFlow(setOf())
     val typingUsers: Flow<Set<String>>
-        get() = _typingUserEvents
+        get() = _typingEvents
             .map { it.map(TypingEvent::username).toSet() }
 
     fun connectToChat(username: String) {
@@ -37,20 +37,23 @@ class ChatViewModel(
                 .onEach { event ->
                     when (event) {
                         is ChatEvent -> {
-                            _eventFlow.value = listOf(event) + _eventFlow.value
-                            mutex.withLock {
-                                _typingUserEvents.value = _typingUserEvents.value
-                                    .filter { it.username != event.username }.toSet()
+                            _eventFlow.update { listOf(event) + it }
+                            typingEventsMutex.withLock {
+                                _typingEvents.update { events ->
+                                    events.filter { it.username != event.username }.toSet()
+                                }
                             }
                         }
                         is TypingEvent -> {
-                            mutex.withLock {
-                                _typingUserEvents.value = _typingUserEvents.value + event
+                            typingEventsMutex.withLock {
+                                if (event.username != username) {
+                                    _typingEvents.update { it + event }
+                                }
                             }
                             scope.launch {
-                                delay(5000)
-                                mutex.withLock {
-                                    _typingUserEvents.value = _typingUserEvents.value - event
+                                delay(3000)
+                                typingEventsMutex.withLock {
+                                    _typingEvents.update { it - event }
                                 }
                             }
                         }

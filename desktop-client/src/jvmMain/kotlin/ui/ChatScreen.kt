@@ -19,23 +19,28 @@ import com.kcchatapp.model.*
 
 @Composable
 fun ChatView(chatViewModel: ChatViewModel) {
-    Column {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
         MessageListView(
             chatEvents = chatViewModel.eventFlow.collectAsState(listOf()).value,
-            typingUsers = chatViewModel.typingUsers.collectAsState(setOf()).value,
             username = chatViewModel.username.value,
         )
-        CreateMessageView(
-            chatViewModel::sendMessage,
-            chatViewModel::startTyping,
-        )
+        Column {
+            TypingUsersView(
+                typingUsers = chatViewModel.typingUsers.collectAsState(setOf()).value,
+            )
+            CreateMessageView(
+                chatViewModel::sendMessage,
+                chatViewModel::startTyping,
+            )
+        }
     }
 }
 
 @Composable
 fun MessageListView(
     chatEvents: List<ChatEvent>,
-    typingUsers: Set<String>,
     username: String?,
 ) {
     Box(
@@ -49,9 +54,6 @@ fun MessageListView(
             state = state,
             reverseLayout = true,
         ) {
-            item {
-                TypingUsers(typingUsers)
-            }
             items(
                 items = chatEvents
             ) { event ->
@@ -94,9 +96,10 @@ private fun UserEventView(userEvent: UserEvent) {
 }
 
 @Composable
-fun TypingUsers(typingUsers: Set<String>) {
-    if (typingUsers.isEmpty()) return
-    val text = if (typingUsers.size == 1) {
+fun TypingUsersView(typingUsers: Set<String>) {
+    val text = if (typingUsers.isEmpty()) {
+        ""
+    } else if (typingUsers.size == 1) {
         "${typingUsers.single()} is typing"
     } else {
         "${typingUsers.joinToString()} are typing"
