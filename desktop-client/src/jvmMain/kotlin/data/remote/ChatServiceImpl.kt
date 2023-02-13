@@ -1,5 +1,8 @@
 package data.remote
 
+import com.kcchatapp.model.ChatEvent
+import com.kcchatapp.model.UserJoined
+import com.kcchatapp.model.UserLeft
 import data.remote.ChatService.Companion.CHAT_HOST
 import data.remote.ChatService.Companion.CHAT_PORT
 import data.remote.ChatService.Companion.CHAT_WS_PATH
@@ -17,7 +20,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.serialization.json.Json
-import model.*
 
 class ChatServiceImpl : ChatService {
     private val client = HttpClient(OkHttp) {

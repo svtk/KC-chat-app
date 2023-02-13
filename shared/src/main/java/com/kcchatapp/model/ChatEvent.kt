@@ -1,11 +1,10 @@
-@file:Suppress("unused")
-package model
+package com.kcchatapp.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface ChatEvent {
-    val stored: Boolean get() = true
+    val persistent: Boolean get() = true
 }
 
 @Serializable
@@ -25,5 +24,5 @@ data class UserLeft(override val name: String): UserEvent
 @Serializable
 data class UserIsTyping(
     override val name: String,
-    override val stored: Boolean = false
+    override val persistent: Boolean = false
 ): UserEvent

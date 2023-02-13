@@ -14,3 +14,4 @@ pluginManagement {
 rootProject.name = "KC-chat-app"
 include(":desktop-client")
 include(":server")
+include("shared")

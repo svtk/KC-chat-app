@@ -1,4 +1,4 @@
-package model
+package com.kcchatapp.model
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant

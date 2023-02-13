@@ -2,6 +2,10 @@ package ui
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.kcchatapp.model.ChatEvent
+import com.kcchatapp.model.Message
+import com.kcchatapp.model.MessageSent
+import com.kcchatapp.model.UserIsTyping
 import data.remote.ChatService
 import data.remote.ChatServiceImpl
 import kotlinx.coroutines.CoroutineScope
@@ -10,7 +14,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import model.*
 
 class ChatViewModel(
     private val scope: CoroutineScope

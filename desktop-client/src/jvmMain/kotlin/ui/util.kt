@@ -1,7 +1,7 @@
 package ui
 
 import kotlinx.datetime.*
-import model.Message
+import com.kcchatapp.model.Message
 
 fun Message.timeText(): String {
     val localDateTime = timestamp

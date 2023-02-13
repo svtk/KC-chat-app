@@ -1,7 +1,7 @@
 package data.remote
 
 import kotlinx.coroutines.flow.*
-import model.ChatEvent
+import com.kcchatapp.model.ChatEvent
 
 interface ChatService {
     suspend fun openSession(username: String)

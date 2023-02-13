@@ -1,6 +1,6 @@
 package com.kcchatapp.db
 
-import model.ChatEvent
+import com.kcchatapp.model.ChatEvent
 import java.util.*
 
 class DAOInMemoryImpl: DAOFacade {

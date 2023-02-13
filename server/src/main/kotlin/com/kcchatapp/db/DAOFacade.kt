@@ -1,6 +1,6 @@
 package com.kcchatapp.db
 
-import model.ChatEvent
+import com.kcchatapp.model.ChatEvent
 
 interface DAOFacade {
     suspend fun saveChatEvent(chatEvent: ChatEvent)
