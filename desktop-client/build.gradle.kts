@@ -2,15 +2,17 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version "1.7.22"
-    id("org.jetbrains.compose") version "1.2.1"
+    kotlin("plugin.serialization") version "1.8.0"
+    id("org.jetbrains.compose") version "1.3.0"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 group = "com.kcchatapp"
 version = "1.0-SNAPSHOT"
 
-val ktor_version: String = "2.1.3"
+val ktor_version = "2.2.3"
+val datetime_version: String by project
+val logback_version: String by project
 
 kotlin {
     jvm {
@@ -25,7 +27,7 @@ kotlin {
                 implementation(project(":shared"))
                 implementation(compose.desktop.currentOs)
                 implementation(compose.materialIconsExtended)
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
@@ -33,7 +35,8 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
                 implementation("io.ktor:ktor-client-okhttp:$ktor_version")
                 implementation("io.ktor:ktor-client-websockets:$ktor_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
+                implementation("ch.qos.logback:logback-classic:$logback_version")
             }
         }
         val jvmTest by getting {

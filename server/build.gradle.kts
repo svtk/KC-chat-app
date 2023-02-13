@@ -1,13 +1,13 @@
 plugins {
     kotlin("jvm")
-    kotlin("plugin.serialization") version "1.7.22"
-    id("io.ktor.plugin") version "2.2.1"
+    kotlin("plugin.serialization") version "1.8.0"
+    id("io.ktor.plugin") version "2.2.3"
     id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
-val kotlin_version = "1.7.22"
-val ktor_version: String = "2.1.3"
-val logback_version = "1.2.11"
+val kotlin_version: String by project // = "1.8.0"
+val logback_version: String by project // = "1.2.11"
+val datetime_version: String by project // = "0.4.0"
 
 group = "com.kcchatapp"
 version = "0.0.1"
@@ -20,14 +20,14 @@ application {
 
 dependencies {
     implementation(project(":shared"))
-    implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-websockets-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("io.ktor:ktor-server-core")
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("io.ktor:ktor-server-websockets")
+    implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
-    testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
+    testImplementation("io.ktor:ktor-server-tests")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
