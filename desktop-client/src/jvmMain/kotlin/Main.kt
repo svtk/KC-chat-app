@@ -1,8 +1,10 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import ui.ChatView
 import ui.ChatViewModel
 import ui.WelcomeScreen
@@ -33,7 +35,8 @@ fun main() = application {
             chatViewModel.disconnect()
             exitApplication()
         },
-        title = "Chat"
+        title = "Chat",
+        state = rememberWindowState(width = 300.dp, height = 600.dp),
     ) {
         App(chatViewModel)
     }
