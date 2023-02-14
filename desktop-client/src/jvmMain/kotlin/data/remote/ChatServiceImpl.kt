@@ -1,6 +1,6 @@
 package data.remote
 
-import com.kcchatapp.model.*
+import com.kcchatapp.model.ChatEvent
 import data.remote.ChatService.Companion.CHAT_HOST
 import data.remote.ChatService.Companion.CHAT_PORT
 import data.remote.ChatService.Companion.CHAT_WS_PATH
@@ -48,17 +48,17 @@ class ChatServiceImpl : ChatService {
         }
     }
 
-    override fun observeEvents(): Flow<Event> {
+    override fun observeEvents(): Flow<ChatEvent> {
         return socket
             ?.incoming
             ?.receiveAsFlow()
             ?.mapNotNull {
-                socket?.converter?.deserialize<Event>(it)
+                socket?.converter?.deserialize<ChatEvent>(it)
             }
             ?: flowOf()
     }
 
-    override suspend fun sendEvent(event: Event) {
+    override suspend fun sendEvent(event: ChatEvent) {
         try {
             socket?.sendSerialized(event)
         } catch (e: Exception) {

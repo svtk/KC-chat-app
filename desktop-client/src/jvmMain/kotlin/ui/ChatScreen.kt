@@ -15,7 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kcchatapp.model.*
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import model.Message
+import model.timeText
 
 @Composable
 fun ChatView(chatViewModel: ChatViewModel) {
@@ -23,12 +27,12 @@ fun ChatView(chatViewModel: ChatViewModel) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         MessageListView(
-            chatEvents = chatViewModel.eventFlow.collectAsState(listOf()).value,
+            messages = chatViewModel.messagesFlow.collectAsState(persistentListOf()).value,
             username = chatViewModel.username.value,
         )
         Column {
             TypingUsersView(
-                typingUsers = chatViewModel.typingUsers.collectAsState(setOf()).value,
+                typingUsers = chatViewModel.typingUsers.collectAsState(persistentSetOf()).value,
             )
             CreateMessageView(
                 chatViewModel::sendMessage,
@@ -40,9 +44,10 @@ fun ChatView(chatViewModel: ChatViewModel) {
 
 @Composable
 fun MessageListView(
-    chatEvents: List<ChatEvent>,
+    messages: ImmutableList<Message>,
     username: String?,
 ) {
+//    println("Rendering message list for $username, last message: ${messages.firstOrNull()?.text}")
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,12 +60,9 @@ fun MessageListView(
             reverseLayout = true,
         ) {
             items(
-                items = chatEvents
+                items = messages
             ) { event ->
-                when (event) {
-                    is MessageEvent -> MessageView(event, username)
-                    is UserEvent -> UserEventView(event)
-                }
+                MessageView(event, username)
                 Spacer(modifier = Modifier.height(10.dp))
             }
         }
@@ -74,35 +76,18 @@ fun MessageListView(
 }
 
 @Composable
-private fun UserEventView(userEvent: UserEvent) {
-    val change = when (userEvent.statusChange) {
-        UserStatusChange.USER_JOINED -> "joined"
-        UserStatusChange.USER_LEFT -> "left"
-    }
-    val systemText = "${userEvent.username} $change"
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Card {
-            Text(
-                modifier = Modifier.padding(4.dp),
-                text = systemText,
-                color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
-                style = MaterialTheme.typography.overline
-            )
-        }
-    }
-}
-
-@Composable
 fun TypingUsersView(typingUsers: Set<String>) {
     val text = if (typingUsers.isEmpty()) {
         ""
     } else if (typingUsers.size == 1) {
         "${typingUsers.single()} is typing"
+    } else if (typingUsers.size == 2) {
+        val (first, second) = typingUsers.toList()
+        "$first and $second are typing"
     } else {
-        "${typingUsers.joinToString()} are typing"
+        val list = typingUsers.toList()
+        val first = list.take(list.size - 1).joinToString()
+        "$first, and ${list.last()} are typing"
     }
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -119,10 +104,10 @@ fun TypingUsersView(typingUsers: Set<String>) {
 
 @Composable
 private fun MessageView(
-    event: MessageEvent,
+    message: Message,
     username: String?
 ) {
-    val isOwnMessage = event.username == username
+    val isOwnMessage = message.username == username
     Box(
         contentAlignment = if (isOwnMessage) {
             Alignment.CenterEnd
@@ -148,16 +133,16 @@ private fun MessageView(
                     )
             ) {
                 Text(
-                    text = event.username,
+                    text = message.username,
                     style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(top = 5.dp, start = 5.dp, end = 15.dp),
                 )
                 Text(
-                    text = event.message.text,
+                    text = message.text,
                     modifier = Modifier.padding(top = 2.dp, start = 5.dp, end = 15.dp)
                 )
                 Text(
-                    text = event.message.timeText(),
+                    text = message.timeText(),
                     modifier = Modifier.align(Alignment.End).padding(start = 20.dp),
                     color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.overline,

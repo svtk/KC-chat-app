@@ -3,7 +3,7 @@ package com.kcchatapp.plugins
 import com.kcchatapp.Connection
 import com.kcchatapp.db.DAOInMemoryImpl
 import com.kcchatapp.model.ChatEvent
-import com.kcchatapp.model.Event
+import com.kcchatapp.model.MessageEvent
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
@@ -28,12 +28,12 @@ fun Application.configureSockets() {
             val thisConnection = Connection(this)
             connections += thisConnection
             try {
-                dao.chatEvents
+                dao.messageEvents
                     .forEach { message -> sendSerialized(message) }
                 for (content in incoming) {
-                    converter?.deserialize<Event>(content)?.let { event ->
-                        if (event is ChatEvent) {
-                            dao.saveChatEvent(event)
+                    converter?.deserialize<ChatEvent>(content)?.let { event ->
+                        if (event is MessageEvent) {
+                            dao.saveMessageEvent(event)
                         }
                         connections.forEach {
                             it.session.sendSerialized(event)

@@ -1,15 +1,15 @@
 package com.kcchatapp.db
 
-import com.kcchatapp.model.ChatEvent
+import com.kcchatapp.model.MessageEvent
 import java.util.*
 
 class DAOInMemoryImpl: DAOFacade {
-    private val _chatEvents = Collections.synchronizedList(mutableListOf<ChatEvent>())
+    private val _messageEvents = Collections.synchronizedList(mutableListOf<MessageEvent>())
 
-    override suspend fun saveChatEvent(chatEvent: ChatEvent) {
-        _chatEvents += chatEvent
+    override suspend fun saveMessageEvent(messageEvent: MessageEvent) {
+        _messageEvents += messageEvent
     }
 
-    override val chatEvents: List<ChatEvent>
-        get() = _chatEvents
+    override val messageEvents: List<MessageEvent>
+        get() = _messageEvents
 }

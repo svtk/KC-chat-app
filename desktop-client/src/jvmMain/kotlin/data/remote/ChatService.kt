@@ -1,14 +1,14 @@
 package data.remote
 
+import com.kcchatapp.model.ChatEvent
 import kotlinx.coroutines.flow.*
-import com.kcchatapp.model.Event
 
 interface ChatService {
     suspend fun openSession(username: String)
 
-    fun observeEvents(): Flow<Event>
+    fun observeEvents(): Flow<ChatEvent>
 
-    suspend fun sendEvent(event: Event)
+    suspend fun sendEvent(event: ChatEvent)
 
     suspend fun closeSession()
 

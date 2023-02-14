@@ -37,6 +37,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-websockets:$ktor_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
                 implementation("ch.qos.logback:logback-classic:$logback_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
             }
         }
         val jvmTest by getting {
