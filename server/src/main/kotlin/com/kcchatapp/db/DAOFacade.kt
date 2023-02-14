@@ -1,9 +1,9 @@
 package com.kcchatapp.db
 
-import com.kcchatapp.model.MessageEvent
+import com.kcchatapp.model.ChatEvent
 
 interface DAOFacade {
-    suspend fun saveMessageEvent(messageEvent: MessageEvent)
+    suspend fun saveChatEvent(chatEvent: ChatEvent)
 
-    val messageEvents: List<MessageEvent>
+    val chatEvents: List<ChatEvent>
 }
