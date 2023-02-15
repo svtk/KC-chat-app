@@ -14,6 +14,15 @@ val ktor_version = "2.2.3"
 val datetime_version: String by project
 val logback_version: String by project
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+//    targetCompatibility = JavaVersion.VERSION_17
+//    sourceCompatibility = JavaVersion.VERSION_17
+}
+
 kotlin {
     jvm {
         compilations.all {

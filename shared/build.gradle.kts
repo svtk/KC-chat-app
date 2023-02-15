@@ -16,3 +16,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
 }
+
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+//    targetCompatibility = JavaVersion.VERSION_17
+//    sourceCompatibility = JavaVersion.VERSION_17
+}
