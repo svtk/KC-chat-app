@@ -21,7 +21,6 @@ dependencies {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.AZUL)
     }
 //    targetCompatibility = JavaVersion.VERSION_17
 //    sourceCompatibility = JavaVersion.VERSION_17

@@ -1,3 +1,6 @@
+import kotlinx.kover.api.IntellijEngine
+import kotlinx.kover.api.JacocoEngine
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization") version "1.8.0"
@@ -18,10 +21,23 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+kover {
+//    engine.set(IntellijEngine("1.0.608"))
+    engine.set(JacocoEngine("0.8.7"))
+
+    verify {
+        rule {
+            name = "Minimal line coverage rate in percents"
+            bound {
+                minValue = 5
+            }
+        }
+    }
+}
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.AZUL)
     }
 //    targetCompatibility = JavaVersion.VERSION_17
 //    sourceCompatibility = JavaVersion.VERSION_17
