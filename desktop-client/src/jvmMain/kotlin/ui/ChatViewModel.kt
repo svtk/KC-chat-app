@@ -11,8 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import model.Message
 import model.toMessage
@@ -27,7 +25,6 @@ class ChatViewModel(
     private val _eventFlow: MutableStateFlow<PersistentList<Message>> = MutableStateFlow(persistentListOf())
     val messagesFlow: StateFlow<ImmutableList<Message>> get() = _eventFlow
 
-    private val typingEventsMutex = Mutex()
     private val _typingEvents: MutableStateFlow<Set<TypingEvent>> = MutableStateFlow(setOf())
     val typingUsers: Flow<ImmutableSet<String>>
         get() = _typingEvents
@@ -42,23 +39,18 @@ class ChatViewModel(
                     when (event) {
                         is MessageEvent -> {
                             _eventFlow.update { persistentListOf(event.toMessage()) + it }
-                            typingEventsMutex.withLock {
-                                _typingEvents.update { events ->
-                                    events.filter { it.username != event.username }.toSet()
-                                }
+                            _typingEvents.update { events ->
+                                events.filter { it.username != event.username }.toSet()
                             }
                         }
+
                         is TypingEvent -> {
-                            typingEventsMutex.withLock {
-                                if (event.username != username) {
-                                    _typingEvents.update { it + event }
-                                }
+                            if (event.username != username) {
+                                _typingEvents.update { it + event }
                             }
                             scope.launch {
                                 delay(3000)
-                                typingEventsMutex.withLock {
-                                    _typingEvents.update { it - event }
-                                }
+                                _typingEvents.update { it - event }
                             }
                         }
                     }
