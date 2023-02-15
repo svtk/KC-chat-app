@@ -33,6 +33,13 @@ kover {
             }
         }
     }
+
+    filters {
+        classes {
+            includes += listOf("com.kcchatapp.*")
+            excludes += listOf("com.kcchatapp.db.*")
+        }
+    }
 }
 
 java {
