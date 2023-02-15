@@ -22,8 +22,8 @@ application {
 }
 
 kover {
-//    engine.set(IntellijEngine("1.0.608"))
-    engine.set(JacocoEngine("0.8.7"))
+    engine.set(IntellijEngine("1.0.683"))
+//    engine.set(JacocoEngine("0.8.7"))
 
     verify {
         rule {
