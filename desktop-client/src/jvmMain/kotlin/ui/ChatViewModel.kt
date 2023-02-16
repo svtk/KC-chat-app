@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import model.Message
-import model.toMessage
+import model.message
 
 class ChatViewModel(
     private val scope: CoroutineScope
@@ -22,10 +22,10 @@ class ChatViewModel(
     private var _username = mutableStateOf<String?>(null)
     val username: State<String?> = _username
 
-    private val _eventFlow: MutableStateFlow<PersistentList<Message>> = MutableStateFlow(persistentListOf())
-    val messagesFlow: StateFlow<ImmutableList<Message>> get() = _eventFlow
+    private val _messagesFlow: MutableStateFlow<PersistentList<Message>> = MutableStateFlow(persistentListOf())
+    val messagesFlow: StateFlow<ImmutableList<Message>> get() = _messagesFlow
 
-    private val _typingEvents: MutableStateFlow<Set<TypingEvent>> = MutableStateFlow(setOf())
+    private val _typingEvents: MutableStateFlow<List<TypingEvent>> = MutableStateFlow(listOf())
     val typingUsers: Flow<ImmutableSet<String>>
         get() = _typingEvents
             .map { it.map(TypingEvent::username).toImmutableSet() }
@@ -38,9 +38,10 @@ class ChatViewModel(
                 .onEach { event ->
                     when (event) {
                         is MessageEvent -> {
-                            _eventFlow.update { persistentListOf(event.toMessage()) + it }
+                            _messagesFlow.update { plist -> persistentListOf(event.message) + plist }
                             _typingEvents.update { events ->
-                                events.filter { it.username != event.username }.toSet()
+                                // cancelling typing events from a user if this user has written a message
+                                events.filter { it.username != event.username }
                             }
                         }
 

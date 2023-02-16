@@ -13,8 +13,8 @@ data class Message(
     val localDateTime: LocalDateTime
 )
 
-fun MessageEvent.toMessage() =
-    Message(
+val MessageEvent.message
+    get() = Message(
         username = username,
         text = messageText,
         localDateTime = timestamp.toLocalDateTime(TimeZone.currentSystemDefault())

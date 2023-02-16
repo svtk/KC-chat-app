@@ -15,6 +15,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
 }
 
 

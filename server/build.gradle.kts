@@ -57,7 +57,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.ktor:ktor-server-netty")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
     testImplementation("io.ktor:ktor-server-tests")

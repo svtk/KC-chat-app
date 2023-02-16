@@ -22,19 +22,20 @@ import model.Message
 import model.timeText
 
 @Composable
-fun ChatView(chatViewModel: ChatViewModel) {
+fun ChatScreen(chatViewModel: ChatViewModel) {
     Column(
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        MessageListView(
+        MessageList(
             messages = chatViewModel.messagesFlow.collectAsState(persistentListOf()).value,
             username = chatViewModel.username.value,
         )
         Column {
-            TypingUsersView(
+            TypingUsers(
                 typingUsers = chatViewModel.typingUsers.collectAsState(persistentSetOf()).value,
             )
-            CreateMessageView(
+            CreateMessage(
                 chatViewModel::sendMessage,
                 chatViewModel::startTyping,
             )
@@ -43,7 +44,7 @@ fun ChatView(chatViewModel: ChatViewModel) {
 }
 
 @Composable
-fun MessageListView(
+fun MessageList(
     messages: ImmutableList<Message>,
     username: String?,
 ) {
@@ -62,7 +63,7 @@ fun MessageListView(
             items(
                 items = messages
             ) { event ->
-                MessageView(event, username)
+                MessageCard(event, username)
                 Spacer(modifier = Modifier.height(10.dp))
             }
         }
@@ -76,7 +77,7 @@ fun MessageListView(
 }
 
 @Composable
-fun TypingUsersView(typingUsers: Set<String>) {
+fun TypingUsers(typingUsers: Set<String>) {
     val text = if (typingUsers.isEmpty()) {
         ""
     } else if (typingUsers.size == 1) {
@@ -103,7 +104,7 @@ fun TypingUsersView(typingUsers: Set<String>) {
 }
 
 @Composable
-private fun MessageView(
+private fun MessageCard(
     message: Message,
     username: String?
 ) {
@@ -153,7 +154,7 @@ private fun MessageView(
 }
 
 @Composable
-fun CreateMessageView(
+fun CreateMessage(
     onMessageSent: (String) -> Unit,
     onUserIsTyping: () -> Unit
 ) {

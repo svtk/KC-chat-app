@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import ui.ChatView
+import ui.ChatScreen
 import ui.ChatViewModel
 import ui.WelcomeScreen
 import ui.WelcomeViewModel
@@ -20,7 +20,7 @@ fun App(chatViewModel: ChatViewModel) {
             LaunchedEffect(true) {
                 chatViewModel.connectToChat(welcomeViewModel.username.value)
             }
-            ChatView(chatViewModel)
+            ChatScreen(chatViewModel)
         } else {
             WelcomeScreen(welcomeViewModel)
         }
