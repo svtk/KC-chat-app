@@ -1,6 +1,7 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -8,21 +9,23 @@ import androidx.compose.ui.window.rememberWindowState
 import ui.ChatScreen
 import ui.ChatViewModel
 import ui.WelcomeScreen
-import ui.WelcomeViewModel
 
 @Composable
 @Preview
 fun App(chatViewModel: ChatViewModel) {
-    var loggedIn by remember { mutableStateOf(false) }
-    val welcomeViewModel = WelcomeViewModel(onJoin = { loggedIn = true })
+    var loggedIn by rememberSaveable { mutableStateOf(false) }
+    var username by rememberSaveable { mutableStateOf("") }
     MaterialTheme {
         if (loggedIn) {
             LaunchedEffect(true) {
-                chatViewModel.connectToChat(welcomeViewModel.username.value)
+                chatViewModel.connectToChat(username)
             }
             ChatScreen(chatViewModel)
         } else {
-            WelcomeScreen(welcomeViewModel)
+            WelcomeScreen(onJoinClick = { name ->
+                loggedIn = true
+                username = name
+            })
         }
     }
 }
