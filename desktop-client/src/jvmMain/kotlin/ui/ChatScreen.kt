@@ -1,20 +1,20 @@
 package ui
 
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
@@ -43,6 +43,7 @@ fun ChatScreen(chatViewModel: ChatViewModel) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageList(
     messages: ImmutableList<Message>,
@@ -63,7 +64,21 @@ fun MessageList(
             items(
                 items = messages
             ) { event ->
-                MessageCard(event, username)
+                //TODO: calculate time since last message by the user
+                val lastSeen = "placeholder"
+                TooltipArea(
+                    tooltip = {
+                        Text(
+                            text = "Last seen: $lastSeen",
+                            color = Color.DarkGray,
+                            fontSize = 0.8.em,
+                            modifier = Modifier
+                                .background(Color.LightGray)
+                                .padding(start = 5.dp, end = 5.dp, top = 3.dp, bottom = 3.dp)
+                        )
+                    },
+                    content = { MessageCard(event, username) }
+                )
                 Spacer(modifier = Modifier.height(10.dp))
             }
         }
@@ -106,7 +121,7 @@ fun TypingUsers(typingUsers: Set<String>) {
 @Composable
 private fun MessageCard(
     message: Message,
-    username: String?
+    username: String?,
 ) {
     val isOwnMessage = message.username == username
     Box(
