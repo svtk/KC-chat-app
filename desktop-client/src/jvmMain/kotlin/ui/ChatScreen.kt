@@ -10,16 +10,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import model.Message
 import model.timeText
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun ChatScreen(chatViewModel: ChatViewModel) {
@@ -43,7 +52,7 @@ fun ChatScreen(chatViewModel: ChatViewModel) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun MessageList(
     messages: ImmutableList<Message>,
@@ -63,21 +72,43 @@ fun MessageList(
         ) {
             items(
                 items = messages
-            ) { event ->
-                //TODO: calculate time since last message by the user
-                val lastSeen = "placeholder"
+            ) { message ->
                 TooltipArea(
                     tooltip = {
+                        var hovered by remember { mutableStateOf(false) }
+                        var elapsed by remember {
+                            //TODO: can anything go wrong here?
+                            val value =
+                                Clock.System.now() - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
+                            mutableStateOf(value)
+                        }
                         Text(
-                            text = "Last seen: $lastSeen",
+                            //TODO: can we do this in a nicer way?
+                            text = "Elapsed time: ${
+                                elapsed.toComponents { days, hours, minutes, seconds, _ ->
+                                        when {
+                                            elapsed < 1.minutes -> "${seconds}s"
+                                            elapsed < 1.hours -> "${minutes}m ${seconds}s"
+                                            elapsed < 1.days -> "${hours}h ${minutes}m"
+                                            else -> "${days}d ${hours}h ${minutes}m"
+                                        }
+                                    }
+                            }",
                             color = Color.DarkGray,
                             fontSize = 0.8.em,
                             modifier = Modifier
                                 .background(Color.LightGray)
                                 .padding(start = 5.dp, end = 5.dp, top = 3.dp, bottom = 3.dp)
+                                .onPointerEvent(PointerEventType.Enter) {
+                                    hovered = true
+                                    elapsed =
+                                        Clock.System.now() - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
+                                }.onPointerEvent(PointerEventType.Exit) {
+                                    hovered = false
+                                }
                         )
                     },
-                    content = { MessageCard(event, username) }
+                    content = { MessageCard(message, username) }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -171,7 +202,7 @@ private fun MessageCard(
 @Composable
 fun CreateMessage(
     onMessageSent: (String) -> Unit,
-    onUserIsTyping: () -> Unit
+    onUserIsTyping: () -> Unit,
 ) {
     var message by remember { mutableStateOf("") }
     Card(Modifier.padding(10.dp)) {
