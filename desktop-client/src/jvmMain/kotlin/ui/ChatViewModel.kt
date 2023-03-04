@@ -12,11 +12,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import model.Message
 import model.message
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class ChatViewModel(
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
 ) {
     private val chatService: ChatService = ChatServiceImpl()
     private var _username = mutableStateOf<String?>(null)
@@ -24,6 +27,9 @@ class ChatViewModel(
 
     private val _messagesFlow: MutableStateFlow<PersistentList<Message>> = MutableStateFlow(persistentListOf())
     val messagesFlow: StateFlow<ImmutableList<Message>> get() = _messagesFlow
+
+    private val _refreshFlow: MutableStateFlow<Instant> = MutableStateFlow(Clock.System.now())
+    val refreshFlow: StateFlow<Instant> get() = _refreshFlow
 
     private val _typingEvents: MutableStateFlow<List<TypingEvent>> = MutableStateFlow(listOf())
     val typingUsers: Flow<ImmutableSet<String>>
@@ -58,6 +64,12 @@ class ChatViewModel(
                 }
                 .launchIn(scope)
         }
+
+        scope.launch {
+            schedule().collect { instant ->
+                _refreshFlow.update { instant }
+            }
+        }
     }
 
     fun disconnect() {
@@ -83,6 +95,13 @@ class ChatViewModel(
                     TypingEvent(username = name, timestamp = Clock.System.now())
                 )
             }
+        }
+    }
+
+    private fun schedule(period: Duration = 1000.milliseconds): Flow<Instant> = flow {
+        while (true) {
+            emit(Clock.System.now())
+            delay(period)
         }
     }
 }

@@ -21,10 +21,9 @@ import androidx.compose.ui.unit.em
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
+import kotlinx.datetime.*
 import model.Message
+import model.elapsedText
 import model.timeText
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -39,6 +38,7 @@ fun ChatScreen(chatViewModel: ChatViewModel) {
         MessageList(
             messages = chatViewModel.messagesFlow.collectAsState(persistentListOf()).value,
             username = chatViewModel.username.value,
+            refresh = chatViewModel.refreshFlow.collectAsState(Clock.System.now()).value
         )
         Column {
             TypingUsers(
@@ -57,6 +57,7 @@ fun ChatScreen(chatViewModel: ChatViewModel) {
 fun MessageList(
     messages: ImmutableList<Message>,
     username: String?,
+    refresh: Instant
 ) {
 //    println("Rendering message list for $username, last message: ${messages.firstOrNull()?.text}")
     Box(
@@ -78,12 +79,10 @@ fun MessageList(
                         var hovered by remember { mutableStateOf(false) }
                         var elapsed by remember {
                             //TODO: can anything go wrong here?
-                            val value =
-                                Clock.System.now() - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
+                            val value = refresh - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
                             mutableStateOf(value)
                         }
                         Text(
-                            //TODO: can we do this in a nicer way?
                             text = "Elapsed time: ${
                                 elapsed.toComponents { days, hours, minutes, seconds, _ ->
                                         when {
@@ -101,14 +100,13 @@ fun MessageList(
                                 .padding(start = 5.dp, end = 5.dp, top = 3.dp, bottom = 3.dp)
                                 .onPointerEvent(PointerEventType.Enter) {
                                     hovered = true
-                                    elapsed =
-                                        Clock.System.now() - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
+                                    elapsed = refresh - message.localDateTime.toInstant(TimeZone.currentSystemDefault())
                                 }.onPointerEvent(PointerEventType.Exit) {
                                     hovered = false
                                 }
                         )
                     },
-                    content = { MessageCard(message, username) }
+                    content = { MessageCard(message, username, refresh) }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -153,6 +151,7 @@ fun TypingUsers(typingUsers: Set<String>) {
 private fun MessageCard(
     message: Message,
     username: String?,
+    refresh: Instant = Clock.System.now()
 ) {
     val isOwnMessage = message.username == username
     Box(
@@ -189,7 +188,8 @@ private fun MessageCard(
                     modifier = Modifier.padding(top = 2.dp, start = 5.dp, end = 15.dp)
                 )
                 Text(
-                    text = message.timeText(),
+//                    text = message.timeText(),
+                    text = message.elapsedText(),
                     modifier = Modifier.align(Alignment.End).padding(start = 20.dp),
                     color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.overline,
